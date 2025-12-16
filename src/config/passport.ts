@@ -5,7 +5,7 @@ import { User } from '../entities/User';
 
 const cookieExtractor = (req: Request) => {
   const token = req?.cookies?.token;
-  console.log('Extracted token:', token); 
+//   console.log('Extracted token:', token); 
   return token || null;
 };
 
@@ -14,7 +14,7 @@ export const passportStrategy = new JwtStrategy(
     jwtFromRequest: cookieExtractor,
     secretOrKey: process.env.JWT_SECRET!, 
   },
-  async (payload, done) => {
+  async (payload: any, done: (error: any, user?: any) => void) => {
     try {
       console.log('JWT payload:', payload); 
 

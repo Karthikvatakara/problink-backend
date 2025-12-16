@@ -7,12 +7,11 @@ import { passportStrategy } from './config/passport';
 import authRoutes from "./routes/auth.routes"
 import expenseRouter from "./routes/expense.routes";
 import cookieParser from 'cookie-parser';
-// import "./types/express";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 
 const corsOptions = {
     origin : process.env.FRONTEND_URL,
@@ -27,14 +26,14 @@ app.use(express.urlencoded({extended:true}));
 app.use(passport.initialize());
 passport.use('jwt',passportStrategy);
 
-app.get("/health",(req,res) => {
+app.get("/health",(req: express.Request, res: express.Response) => {
     res.json({ status: "OK", message: "expense tracker api is running"})
 })
 
 app.use('/api/auth',authRoutes)
 app.use('/api/expense',expenseRouter)
 
-app.use((req,res) => {
+app.use((req: express.Request, res: express.Response) => {
     res.status(404).json({ message: "route not found "});
 })
 
