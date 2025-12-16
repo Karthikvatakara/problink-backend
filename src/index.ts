@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
-
+import passport from "passport";
+import { AppDataSource } from "./config/database";
 
 dotenv.config();
 
@@ -12,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
-// passport
+app.use(passport.initialize());
 
 app.get("/health",(req,res) => {
     res.json({ status: "OK", message: "expense tracker api is running"})
@@ -32,6 +33,15 @@ app.use((err: any, req:express.Request, res: express.Response, next: express.Nex
 })
 
 
-app.listen(PORT,() => {
-    console.log(`server is running at port ${PORT}`)
-})
+AppDataSource.initialize()
+  .then(() => {
+    console.log('Database connected successfully');
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Error during database initialization:', error);
+    process.exit(1);
+  });
