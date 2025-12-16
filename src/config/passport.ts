@@ -1,22 +1,38 @@
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { AppDataSource } from "./database";
-import { User } from "../entities/User";
+import { Strategy as JwtStrategy } from 'passport-jwt';
+import { Request } from 'express';
+import { AppDataSource } from './database';
+import { User } from '../entities/User';
 
-const opts = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_this_in_production',
+const cookieExtractor = (req: Request) => {
+  const token = req?.cookies?.token;
+  console.log('Extracted token:', token); 
+  return token || null;
 };
 
-export const passportStrategy = new JwtStrategy(opts, async (payload, done) => {
-  try {
-    const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOne({ where: { id: payload.userId } });
+export const passportStrategy = new JwtStrategy(
+  {
+    jwtFromRequest: cookieExtractor,
+    secretOrKey: process.env.JWT_SECRET!, 
+  },
+  async (payload, done) => {
+    try {
+      console.log('JWT payload:', payload); 
 
-    if (user) {
-      return done(null, user);
+      const userRepo = AppDataSource.getRepository(User);
+
+      const user = await userRepo.findOne({
+        where: { id: payload.userId }, 
+      });
+
+      console.log('User from DB:', user); 
+
+      if (!user) {
+        return done(null, false); 
+      }
+
+      return done(null, user); 
+    } catch (err) {
+      return done(err, false);
     }
-    return done(null, false);
-  } catch (error) {
-    return done(error, false);
   }
-});
+);

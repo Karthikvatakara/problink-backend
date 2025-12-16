@@ -3,23 +3,36 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import passport from "passport";
 import { AppDataSource } from "./config/database";
+import { passportStrategy } from './config/passport';
+import authRoutes from "./routes/auth.routes"
+import expenseRouter from "./routes/expense.routes";
+import cookieParser from 'cookie-parser';
+// import "./types/express";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const corsOptions = {
+    origin : process.env.FRONTEND_URL,
+    credentials: true,
+}
+
+app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
 app.use(passport.initialize());
+passport.use('jwt',passportStrategy);
 
 app.get("/health",(req,res) => {
     res.json({ status: "OK", message: "expense tracker api is running"})
 })
 
-// routes
+app.use('/api/auth',authRoutes)
+app.use('/api/expense',expenseRouter)
 
 app.use((req,res) => {
     res.status(404).json({ message: "route not found "});
